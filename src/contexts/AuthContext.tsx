@@ -22,6 +22,19 @@ interface Profile {
   entity_type: string | null;
   user_persona: string | null;
   ai_maturity_self: string | null;
+  // Enriched profile fields
+  services: string[] | null;
+  tags: string[] | null;
+  company_descriptors: string[] | null;
+  known_competitors: string[] | null;
+  value_propositions: string[] | null;
+  ideal_client_revenue_min: string | null;
+  ideal_client_revenue_max: string | null;
+  ideal_client_employee_min: number | null;
+  ideal_client_employee_max: number | null;
+  geographic_focus: string[] | null;
+  case_study_industries: string[] | null;
+  differentiators: string | null;
 }
 
 interface AuthContextType {

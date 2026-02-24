@@ -59,6 +59,19 @@ serve(async (req) => {
       entity_type,
       user_persona,
       ai_maturity_self,
+      // Enriched profile fields
+      services,
+      tags,
+      company_descriptors,
+      known_competitors,
+      value_propositions,
+      ideal_client_revenue_min,
+      ideal_client_revenue_max,
+      ideal_client_employee_min,
+      ideal_client_employee_max,
+      geographic_focus,
+      case_study_industries,
+      differentiators,
     } = profile;
 
     const today = new Date().toISOString().split("T")[0];
@@ -68,6 +81,29 @@ serve(async (req) => {
     const personaContext = user_persona ? `\nUser Persona: ${user_persona}` : "";
     const maturityContext = ai_maturity_self ? `\nAI Maturity: ${ai_maturity_self}` : "";
 
+    // Build enriched context blocks
+    const servicesBlock = services?.length ? `\nServices Offered: ${services.join(", ")}` : "";
+    const tagsBlock = tags?.length ? `\nBusiness Tags: ${tags.join(", ")}` : "";
+    const descriptorsBlock = company_descriptors?.length ? `\nCompany Descriptors: ${company_descriptors.join(", ")}` : "";
+    const competitorsBlock = known_competitors?.length ? `\nUser's Known Competitors: ${known_competitors.join(", ")} — When generating competitor analysis for prospects, reference how the user's services compare to these companies.` : "";
+    const valuePropsBlock = value_propositions?.length ? `\nValue Propositions: ${value_propositions.join(" | ")}` : "";
+    const differentiatorBlock = differentiators ? `\nKey Differentiator: ${differentiators}` : "";
+    const caseStudyBlock = case_study_industries?.length ? `\nIndustries with Proven Work/Case Studies: ${case_study_industries.join(", ")} — Prioritize prospects in these industries since the user has demonstrated success here.` : "";
+    const geoBlock = geographic_focus?.length ? `\nGeographic Focus Areas: ${geographic_focus.join(", ")} — Weight local prospects toward these regions.` : "";
+
+    // Build revenue targeting instructions
+    let revenueTargeting = "";
+    if (ideal_client_revenue_min || ideal_client_revenue_max) {
+      const minStr = ideal_client_revenue_min || "any";
+      const maxStr = ideal_client_revenue_max || "any";
+      revenueTargeting = `\n\nIDEAL CLIENT SIZE: Revenue ${minStr} to ${maxStr}. CRITICALLY IMPORTANT: At least 60% of all prospects should fall within this revenue range. The user specifically wants companies in this range — NOT just mega-corporations. Include well-known mid-market brands, regional leaders, challenger brands, and growth-stage companies.`;
+    }
+    if (ideal_client_employee_min || ideal_client_employee_max) {
+      const empMin = ideal_client_employee_min || "any";
+      const empMax = ideal_client_employee_max || "any";
+      revenueTargeting += `\nEmployee count sweet spot: ${empMin} to ${empMax}.`;
+    }
+
     const systemPrompt = `You are an elite B2B sales intelligence analyst with deep knowledge of EVERY industry globally. You track companies of all sizes from Fortune 500 to emerging startups across every sector. You generate realistic, actionable market intelligence. Today is ${today}.`;
 
     const userPrompt = `Generate comprehensive, personalized sales intelligence for this user:
@@ -76,7 +112,7 @@ Company: ${company_name || "Unknown"}
 Website: ${website_url || "Not provided"}
 Business Summary: ${business_summary || ai_summary || "Not provided"}
 Target Industries: ${target_industries?.join(", ") || "All industries - cast a wide net"}
-Location: ${locationStr}${entityContext}${personaContext}${maturityContext}
+Location: ${locationStr}${entityContext}${personaContext}${maturityContext}${servicesBlock}${tagsBlock}${descriptorsBlock}${competitorsBlock}${valuePropsBlock}${differentiatorBlock}${caseStudyBlock}${geoBlock}${revenueTargeting}
 ${feedbackContext}
 
 Generate intelligence across a WIDE range of industries. Think globally and across ALL major sectors including but NOT limited to:
@@ -115,26 +151,50 @@ Generate diverse, high-quality intelligence. Be concise but specific.
    Each signal needs a clear sales implication. Use recent dates near ${today}. Include REAL publication sources with realistic URLs.
    For each signal, include 2-3 "impactedEntities" with name, type (industry/company), impact (positive/negative), action (engage/avoid/monitor), and reason.
 
-3. **45-60 prospect companies** in THREE BATCHES:
+3. **45-60 prospect companies** in THREE BATCHES and FOUR REVENUE TIERS:
+
+   REVENUE TIERS — Every batch MUST include companies across these tiers:
+   🔹 TIER A — Growth Stage ($5M–$50M revenue, 20-200 employees): Fast-growing startups, emerging brands, series A-C companies. ~15% of prospects.
+   🔹 TIER B — Mid-Market ($50M–$500M revenue, 200-2000 employees): Regional leaders, challenger brands, category specialists, PE-backed companies. THIS IS THE MOST IMPORTANT TIER. ~40% of prospects.
+   🔹 TIER C — Upper Mid-Market ($500M–$5B revenue, 2000-20000 employees): National brands, established industry players, division-level opportunities at larger companies. ~30% of prospects.
+   🔹 TIER D — Enterprise ($5B+ revenue, 20000+ employees): Fortune 500, global brands. ~15% of prospects.
+
+   CRITICAL: The user is a digital agency — they need REACHABLE companies, not just aspirational mega-brands. Mid-market companies ($50M-$500M) are their SWEET SPOT. Think: regional restaurant chains (not McDonald's), growing DTC brands (not P&G), mid-size manufacturers (not Boeing), regional healthcare systems (not Kaiser), craft beverage companies, regional bank chains, specialty retailers, etc.
 
    **BATCH A — LOCAL (15-20 prospects, scope: "local"):**
    Companies near ${location_city || "the user's city"}, ${location_state || "the user's state"} (within ~150 miles).
-   Include a MIX: well-known regional employers, fast-growing startups, mid-market companies, and local operations of national brands.
+   Include: regional employers, fast-growing startups, mid-market companies, and local operations of national brands.
+   MUST include at least 5 companies under $500M revenue.
    
    **BATCH B — NATIONAL (18-25 prospects, scope: "national"):**
    Companies in OTHER US states far from ${location_state || "GA"}.
-   Spread across at least 8 different states and 10+ different industries. Include Fortune 500s, mid-market leaders, and growth-stage companies.
+   Spread across at least 8 different states and 10+ different industries.
+   MUST include at least 8 companies under $500M revenue. Include regional champions, category leaders, and rising brands — not just household names.
    
    **BATCH C — INTERNATIONAL (12-15 prospects, scope: "international"):**
    Companies in OTHER COUNTRIES (UK, Germany, Japan, Canada, Australia, Singapore, France, Brazil, India, etc.).
    Cover at least 5 different countries and diverse industries.
+   Include emerging international brands and regional leaders, not just global multinationals.
+
+   EXAMPLE MID-MARKET COMPANIES (the KIND of companies to generate — do NOT use these exact names, find REAL ones):
+   - A $200M regional hospital system investing in patient engagement tech
+   - A $80M craft beverage company expanding distribution nationally
+   - A $150M commercial construction firm modernizing project management
+   - A $300M regional grocery chain with 45 locations adopting loyalty tech
+   - A $120M specialty chemical manufacturer entering new markets
+   - A $60M DTC fitness brand scaling their ecommerce platform
+   - A $400M regional bank modernizing their digital experience
 
     CRITICAL RULES:
     - Each prospect's "industryId" MUST match an industry you generated. An airline is NOT "Education". Match the prospect's ACTUAL business to the correct industry.
-    - Include a MIX of company sizes and spread across at least 12 different industries
+    - REQUIRED REVENUE MIX: At least 40% of all prospects MUST have revenue under $500M. Do NOT fill the list with billion-dollar mega-brands.
+    - Think about REAL, SPECIFIC companies — use actual company names the user could verify. Not generic placeholders.
     - REQUIRED: Include companies from food & beverage (QSR, CPG, craft brands), manufacturing (controls, automation), media (production studios, streaming), retail (DTC, marketplaces), and healthcare — not just tech!
-    - Think about REAL companies the user might recognize — well-known brands, regional leaders, and fast-growing challengers across the FULL BREADTH of the economy
-    - Each with a "Why Now" reason, key contacts, 2-3 recommended services, websiteUrl, 2-3 relatedLinks, and 2-3 competitors
+    - If the user provided SERVICES, match recommendedServices to what they actually offer
+    - If the user provided VALUE PROPOSITIONS, weave them into the outreachPlaybook and clientIntelligence
+    - If the user provided KNOWN COMPETITORS, reference them in the competitors array with specific strength/weakness comparisons
+    - If the user provided CASE STUDY INDUSTRIES, weight more prospects toward those industries
+    - Each with a "Why Now" reason, key contacts, 2-3 recommended services, websiteUrl, 2-3 relatedLinks, and 3-4 competitors with strength/weakness/userAdvantage
 
     DECISION MAKER RULES (CRITICAL):
     - For each prospect, include 3-5 key contacts who would be relevant to the opportunity

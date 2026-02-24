@@ -88,6 +88,10 @@ No team data provided — use a generic "Your Dedicated Team" slide with placeho
 - Revenue: ${prospect.annualRevenue}
 - Employees: ${prospect.employeeCount.toLocaleString()}
 - Current Status: ${getPressureLabel(prospect.pressureResponse)}
+${prospect.companyOverview ? `- About: ${prospect.companyOverview}` : ""}
+${prospect.marketPosition ? `- Market Position: ${prospect.marketPosition}` : ""}
+${prospect.competitiveAdvantage ? `- Competitive Advantage: ${prospect.competitiveAdvantage}` : ""}
+${prospect.aiReadiness ? `- AI Readiness Score: ${prospect.aiReadiness.score}/100` : ""}
 
 ## WHY NOW — TIMING & URGENCY
 ${prospect.whyNow}
@@ -99,7 +103,19 @@ ${relatedSignals.length > 0 ? relatedSignals.map(s => `- [${s.sentiment?.toUpper
 ${prospect.decisionMakers.map((d: any) => `- ${d.name}, ${d.title}`).join("\n")}
 
 ${prospect.competitors && prospect.competitors.length > 0 ? `## COMPETITIVE LANDSCAPE
-${prospect.competitors.map((c: any) => `- ${c.name}: ${c.description}`).join("\n")}` : ""}
+${prospect.competitors.map((c: any) => `- ${c.name}: ${c.description}${c.strength ? ` (Strength: ${c.strength})` : ""}${c.weakness ? ` (Weakness: ${c.weakness})` : ""}`).join("\n")}` : ""}
+
+${prospect.companySignals && prospect.companySignals.length > 0 ? `## COMPANY-SPECIFIC SIGNALS
+${prospect.companySignals.map((cs: any) => `- [${cs.type?.toUpperCase()}] ${cs.title}: ${cs.summary}`).join("\n")}` : ""}
+
+${prospect.outreachPlaybook ? `## OUTREACH ANGLE
+- Lead with: ${prospect.outreachPlaybook.primaryAngle}
+${prospect.outreachPlaybook.talkingPoints?.map((tp: string) => `- Talking point: ${tp}`).join("\n") || ""}` : ""}
+
+${prospect.clientIntelligence ? `## CLIENT INTELLIGENCE (use as talking points)
+- Industry Outlook: ${prospect.clientIntelligence.industryOutlook}
+${prospect.clientIntelligence.keyTrends?.map((t: string) => `- Trend: ${t}`).join("\n") || ""}
+${prospect.clientIntelligence.aiTransformationMap ? `- AI Transformation: ${prospect.clientIntelligence.aiTransformationMap}` : ""}` : ""}
 
 ${prospect.recommendedServices && prospect.recommendedServices.length > 0 ? `## RECOMMENDED SERVICES TO HIGHLIGHT
 ${prospect.recommendedServices.map((s: any) => `- ${s.service}: ${s.rationale}`).join("\n")}` : ""}
@@ -211,12 +227,17 @@ Employees: ${prospect.employeeCount.toLocaleString()}
 Location: ${prospect.location.city}, ${prospect.location.state}
 Pipeline Stage: ${pipelineStageLabels[prospect.pipelineStage]}
 Pressure Response: ${getPressureLabel(prospect.pressureResponse)}
+${prospect.companyOverview ? `Company Overview: ${prospect.companyOverview}` : ""}
+${prospect.marketPosition ? `Market Position: ${prospect.marketPosition}` : ""}
+${prospect.aiReadiness ? `AI Readiness: ${prospect.aiReadiness.score}/100` : ""}
 Why Now: ${prospect.whyNow}
 Decision Makers: ${displayContacts.map(d => `${d.name} (${d.title})${d.verified ? " [verified]" : " [suggested role]"}`).join(", ")}
 Notes: ${prospect.notes || "None"}
 Related Signals: ${relatedSignals.map(s => `${s.title} (${s.sentiment}, severity ${s.severity}/5)`).join("; ") || "None"}
-${prospect.competitors ? `Competitors: ${prospect.competitors.map(c => c.name).join(", ")}` : ""}
-${impactData ? `Industry AI Automation: ${impactData.automationRate}%, Opportunity Index: ${impactData.collaborativeOpportunityIndex}` : ""}` : "";
+${prospect.companySignals?.length ? `Company Signals: ${prospect.companySignals.map((cs: any) => `[${cs.type}] ${cs.title}`).join(", ")}` : ""}
+${prospect.competitors ? `Competitors: ${prospect.competitors.map((c: any) => c.name).join(", ")}` : ""}
+${impactData ? `Industry AI Automation: ${impactData.automationRate}%, Opportunity Index: ${impactData.collaborativeOpportunityIndex}` : ""}
+${prospect.outreachPlaybook ? `Outreach Angle: ${prospect.outreachPlaybook.primaryAngle}` : ""}` : "";
 
   // ── Early returns AFTER all hooks ──
 

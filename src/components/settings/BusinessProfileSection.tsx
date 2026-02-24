@@ -146,6 +146,29 @@ export default function BusinessProfileSection() {
   const [userPersona, setUserPersona] = useState("");
   const [aiMaturity, setAiMaturity] = useState("");
 
+  // Enriched profile fields
+  const [services, setServices] = useState<string[]>([]);
+  const [tags, setTags] = useState<string[]>([]);
+  const [companyDescriptors, setCompanyDescriptors] = useState<string[]>([]);
+  const [knownCompetitors, setKnownCompetitors] = useState<string[]>([]);
+  const [valuePropositions, setValuePropositions] = useState<string[]>([]);
+  const [idealRevenueMin, setIdealRevenueMin] = useState("");
+  const [idealRevenueMax, setIdealRevenueMax] = useState("");
+  const [idealEmployeeMin, setIdealEmployeeMin] = useState("");
+  const [idealEmployeeMax, setIdealEmployeeMax] = useState("");
+  const [geographicFocus, setGeographicFocus] = useState<string[]>([]);
+  const [caseStudyIndustries, setCaseStudyIndustries] = useState<string[]>([]);
+  const [differentiators, setDifferentiators] = useState("");
+
+  // Tag input temp state
+  const [serviceInput, setServiceInput] = useState("");
+  const [tagInput, setTagInput] = useState("");
+  const [descriptorInput, setDescriptorInput] = useState("");
+  const [competitorInput, setCompetitorInput] = useState("");
+  const [valuePropInput, setValuePropInput] = useState("");
+  const [geoInput, setGeoInput] = useState("");
+  const [caseStudyInput, setCaseStudyInput] = useState("");
+
   const [recommendedIndustries, setRecommendedIndustries] = useState<RecommendedIndustry[]>([]);
   const [sellingAngles, setSellingAngles] = useState<string[]>([]);
 
@@ -160,9 +183,22 @@ export default function BusinessProfileSection() {
       setCity(profile.location_city || "");
       setState(profile.location_state || "");
       setTargetIndustries(profile.target_industries || []);
-      setEntityType((profile as any).entity_type || "");
-      setUserPersona((profile as any).user_persona || "");
-      setAiMaturity((profile as any).ai_maturity_self || "");
+      setEntityType(profile.entity_type || "");
+      setUserPersona(profile.user_persona || "");
+      setAiMaturity(profile.ai_maturity_self || "");
+      // Enriched fields
+      setServices(profile.services || []);
+      setTags(profile.tags || []);
+      setCompanyDescriptors(profile.company_descriptors || []);
+      setKnownCompetitors(profile.known_competitors || []);
+      setValuePropositions(profile.value_propositions || []);
+      setIdealRevenueMin(profile.ideal_client_revenue_min || "");
+      setIdealRevenueMax(profile.ideal_client_revenue_max || "");
+      setIdealEmployeeMin(profile.ideal_client_employee_min?.toString() || "");
+      setIdealEmployeeMax(profile.ideal_client_employee_max?.toString() || "");
+      setGeographicFocus(profile.geographic_focus || []);
+      setCaseStudyIndustries(profile.case_study_industries || []);
+      setDifferentiators(profile.differentiators || "");
     }
   }, [profile]);
 
@@ -248,6 +284,19 @@ export default function BusinessProfileSection() {
           ai_summary: aiSummary, company_size: companySize, role_title: roleTitle,
           location_city: city, location_state: state, target_industries: updatedIndustries,
           entity_type: entityType || null, user_persona: userPersona || null, ai_maturity_self: aiMaturity || null,
+          // Enriched fields
+          services: services.length > 0 ? services : null,
+          tags: tags.length > 0 ? tags : null,
+          company_descriptors: companyDescriptors.length > 0 ? companyDescriptors : null,
+          known_competitors: knownCompetitors.length > 0 ? knownCompetitors : null,
+          value_propositions: valuePropositions.length > 0 ? valuePropositions : null,
+          ideal_client_revenue_min: idealRevenueMin || null,
+          ideal_client_revenue_max: idealRevenueMax || null,
+          ideal_client_employee_min: idealEmployeeMin ? parseInt(idealEmployeeMin) : null,
+          ideal_client_employee_max: idealEmployeeMax ? parseInt(idealEmployeeMax) : null,
+          geographic_focus: geographicFocus.length > 0 ? geographicFocus : null,
+          case_study_industries: caseStudyIndustries.length > 0 ? caseStudyIndustries : null,
+          differentiators: differentiators || null,
         })
         .eq("user_id", user.id);
 
@@ -439,6 +488,241 @@ export default function BusinessProfileSection() {
             )}
           </div>
         )}
+      </div>
+
+      {/* ── Services & Capabilities ── */}
+      <div className="rounded-lg border border-primary/20 bg-primary/5 p-6">
+        <h3 className="text-sm font-semibold text-foreground mb-1">Services & Capabilities</h3>
+        <p className="text-xs text-muted-foreground mb-4">What do you offer? These drive prospect matching and recommended service suggestions.</p>
+        <div className="space-y-3">
+          {services.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {services.map((s) => (
+                <span key={s} className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
+                  {s}
+                  <button type="button" onClick={() => setServices(prev => prev.filter(x => x !== s))} className="ml-0.5 hover:text-destructive"><X className="h-3 w-3" /></button>
+                </span>
+              ))}
+            </div>
+          )}
+          <div className="flex gap-2">
+            <input type="text" value={serviceInput} onChange={e => setServiceInput(e.target.value)}
+              onKeyDown={e => { if (e.key === "Enter" && serviceInput.trim()) { e.preventDefault(); if (!services.includes(serviceInput.trim())) setServices(prev => [...prev, serviceInput.trim()]); setServiceInput(""); }}}
+              placeholder="e.g. Web Development, Brand Strategy, AI Consulting..."
+              className="flex-1 rounded-md border border-border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary" />
+            <button type="button" onClick={() => { if (serviceInput.trim() && !services.includes(serviceInput.trim())) { setServices(prev => [...prev, serviceInput.trim()]); setServiceInput(""); }}}
+              className="rounded-md border border-primary/30 bg-primary/5 px-3 py-2 text-xs font-medium text-primary hover:bg-primary/10"><Plus className="h-3.5 w-3.5" /></button>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Value Propositions & Differentiators ── */}
+      <div className="rounded-lg border border-border bg-card p-6">
+        <h3 className="text-sm font-semibold text-foreground mb-1">Value Propositions</h3>
+        <p className="text-xs text-muted-foreground mb-4">Why should a prospect choose you? These power outreach playbooks and client intelligence.</p>
+        <div className="space-y-3">
+          {valuePropositions.length > 0 && (
+            <div className="space-y-1.5">
+              {valuePropositions.map((vp, i) => (
+                <div key={i} className="flex items-start gap-2 rounded-md border border-border bg-background p-2.5">
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-[9px] font-bold text-primary shrink-0 mt-0.5">{i + 1}</span>
+                  <span className="flex-1 text-xs text-foreground">{vp}</span>
+                  <button type="button" onClick={() => setValuePropositions(prev => prev.filter((_, idx) => idx !== i))} className="text-muted-foreground hover:text-destructive"><X className="h-3 w-3" /></button>
+                </div>
+              ))}
+            </div>
+          )}
+          <div className="flex gap-2">
+            <input type="text" value={valuePropInput} onChange={e => setValuePropInput(e.target.value)}
+              onKeyDown={e => { if (e.key === "Enter" && valuePropInput.trim()) { e.preventDefault(); setValuePropositions(prev => [...prev, valuePropInput.trim()]); setValuePropInput(""); }}}
+              placeholder="e.g. We deliver 40% faster than competitors..."
+              className="flex-1 rounded-md border border-border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary" />
+            <button type="button" onClick={() => { if (valuePropInput.trim()) { setValuePropositions(prev => [...prev, valuePropInput.trim()]); setValuePropInput(""); }}}
+              className="rounded-md border border-border px-3 py-2 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-accent"><Plus className="h-3.5 w-3.5" /></button>
+          </div>
+          <div>
+            <label className="mb-1.5 block text-xs font-medium text-foreground">Key Differentiator</label>
+            <textarea rows={2} value={differentiators} onChange={e => setDifferentiators(e.target.value)}
+              placeholder="What makes you fundamentally different from competitors? (1-2 sentences)"
+              className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm resize-none placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary" />
+          </div>
+        </div>
+      </div>
+
+      {/* ── Known Competitors ── */}
+      <div className="rounded-lg border border-border bg-card p-6">
+        <h3 className="text-sm font-semibold text-foreground mb-1">Your Competitors</h3>
+        <p className="text-xs text-muted-foreground mb-4">Companies you compete against. VIGYL uses these to find your edge in prospect reports.</p>
+        <div className="space-y-3">
+          {knownCompetitors.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {knownCompetitors.map((c) => (
+                <span key={c} className="inline-flex items-center gap-1 rounded-full border border-rose-200 dark:border-rose-800 bg-rose-50 dark:bg-rose-900/20 px-2.5 py-1 text-xs font-medium text-rose-700 dark:text-rose-300">
+                  {c}
+                  <button type="button" onClick={() => setKnownCompetitors(prev => prev.filter(x => x !== c))} className="ml-0.5 hover:text-destructive"><X className="h-3 w-3" /></button>
+                </span>
+              ))}
+            </div>
+          )}
+          <div className="flex gap-2">
+            <input type="text" value={competitorInput} onChange={e => setCompetitorInput(e.target.value)}
+              onKeyDown={e => { if (e.key === "Enter" && competitorInput.trim()) { e.preventDefault(); if (!knownCompetitors.includes(competitorInput.trim())) setKnownCompetitors(prev => [...prev, competitorInput.trim()]); setCompetitorInput(""); }}}
+              placeholder="e.g. Accenture, WPP, Deloitte Digital..."
+              className="flex-1 rounded-md border border-border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary" />
+            <button type="button" onClick={() => { if (competitorInput.trim() && !knownCompetitors.includes(competitorInput.trim())) { setKnownCompetitors(prev => [...prev, competitorInput.trim()]); setCompetitorInput(""); }}}
+              className="rounded-md border border-border px-3 py-2 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-accent"><Plus className="h-3.5 w-3.5" /></button>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Ideal Client Profile ── */}
+      <div className="rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-900/10 p-6">
+        <h3 className="text-sm font-semibold text-foreground mb-1">Ideal Client Profile</h3>
+        <p className="text-xs text-muted-foreground mb-4">Define your sweet spot. VIGYL uses this to weight and sort opportunities by fit.</p>
+        <div className="space-y-4">
+          <div>
+            <label className="mb-2 block text-xs font-medium text-foreground">Revenue Range</label>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <select value={idealRevenueMin} onChange={e => setIdealRevenueMin(e.target.value)}
+                  className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary">
+                  <option value="">No minimum</option>
+                  <option value="$1M">$1M</option>
+                  <option value="$5M">$5M</option>
+                  <option value="$10M">$10M</option>
+                  <option value="$25M">$25M</option>
+                  <option value="$50M">$50M</option>
+                  <option value="$100M">$100M</option>
+                  <option value="$200M">$200M</option>
+                  <option value="$500M">$500M</option>
+                  <option value="$1B">$1B</option>
+                </select>
+                <p className="text-[9px] text-muted-foreground mt-1">Minimum revenue</p>
+              </div>
+              <div>
+                <select value={idealRevenueMax} onChange={e => setIdealRevenueMax(e.target.value)}
+                  className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary">
+                  <option value="">No maximum</option>
+                  <option value="$10M">$10M</option>
+                  <option value="$25M">$25M</option>
+                  <option value="$50M">$50M</option>
+                  <option value="$100M">$100M</option>
+                  <option value="$200M">$200M</option>
+                  <option value="$500M">$500M</option>
+                  <option value="$1B">$1B</option>
+                  <option value="$5B">$5B</option>
+                  <option value="$10B+">$10B+</option>
+                </select>
+                <p className="text-[9px] text-muted-foreground mt-1">Maximum revenue</p>
+              </div>
+            </div>
+          </div>
+          <div>
+            <label className="mb-2 block text-xs font-medium text-foreground">Employee Count Range</label>
+            <div className="grid grid-cols-2 gap-3">
+              <input type="number" value={idealEmployeeMin} onChange={e => setIdealEmployeeMin(e.target.value)}
+                placeholder="Min (e.g. 50)"
+                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary" />
+              <input type="number" value={idealEmployeeMax} onChange={e => setIdealEmployeeMax(e.target.value)}
+                placeholder="Max (e.g. 5000)"
+                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary" />
+            </div>
+          </div>
+          <div>
+            <label className="mb-2 block text-xs font-medium text-foreground">Geographic Focus</label>
+            <p className="text-[10px] text-muted-foreground mb-2">Regions where you want to find opportunities</p>
+            {geographicFocus.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 mb-2">
+                {geographicFocus.map((g) => (
+                  <span key={g} className="inline-flex items-center gap-1 rounded-full border border-border bg-secondary px-2 py-0.5 text-[10px] font-medium text-foreground">
+                    {g}
+                    <button type="button" onClick={() => setGeographicFocus(prev => prev.filter(x => x !== g))}><X className="h-2.5 w-2.5" /></button>
+                  </span>
+                ))}
+              </div>
+            )}
+            <div className="flex gap-2">
+              <input type="text" value={geoInput} onChange={e => setGeoInput(e.target.value)}
+                onKeyDown={e => { if (e.key === "Enter" && geoInput.trim()) { e.preventDefault(); if (!geographicFocus.includes(geoInput.trim())) setGeographicFocus(prev => [...prev, geoInput.trim()]); setGeoInput(""); }}}
+                placeholder="e.g. Southeast US, Midwest, Texas, UK..."
+                className="flex-1 rounded-md border border-border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary" />
+              <button type="button" onClick={() => { if (geoInput.trim() && !geographicFocus.includes(geoInput.trim())) { setGeographicFocus(prev => [...prev, geoInput.trim()]); setGeoInput(""); }}}
+                className="rounded-md border border-border px-3 py-2 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-accent"><Plus className="h-3.5 w-3.5" /></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Tags & Descriptors ── */}
+      <div className="rounded-lg border border-border bg-card p-6">
+        <h3 className="text-sm font-semibold text-foreground mb-1">Tags & Descriptors</h3>
+        <p className="text-xs text-muted-foreground mb-4">Keywords that describe your work. These help VIGYL match you with the right kinds of companies.</p>
+        <div className="space-y-4">
+          <div>
+            <label className="mb-1.5 block text-xs font-medium text-foreground">Business Tags</label>
+            {tags.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 mb-2">
+                {tags.map((t) => (
+                  <span key={t} className="inline-flex items-center gap-1 rounded-full bg-secondary px-2 py-0.5 text-[10px] font-medium text-foreground">
+                    {t}
+                    <button type="button" onClick={() => setTags(prev => prev.filter(x => x !== t))}><X className="h-2.5 w-2.5" /></button>
+                  </span>
+                ))}
+              </div>
+            )}
+            <div className="flex gap-2">
+              <input type="text" value={tagInput} onChange={e => setTagInput(e.target.value)}
+                onKeyDown={e => { if (e.key === "Enter" && tagInput.trim()) { e.preventDefault(); if (!tags.includes(tagInput.trim())) setTags(prev => [...prev, tagInput.trim()]); setTagInput(""); }}}
+                placeholder="e.g. digital transformation, ecommerce, B2B SaaS..."
+                className="flex-1 rounded-md border border-border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary" />
+              <button type="button" onClick={() => { if (tagInput.trim() && !tags.includes(tagInput.trim())) { setTags(prev => [...prev, tagInput.trim()]); setTagInput(""); }}}
+                className="rounded-md border border-border px-3 py-2 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-accent"><Plus className="h-3.5 w-3.5" /></button>
+            </div>
+          </div>
+          <div>
+            <label className="mb-1.5 block text-xs font-medium text-foreground">Company Descriptors</label>
+            <p className="text-[10px] text-muted-foreground mb-2">How would you describe your company in a pitch?</p>
+            {companyDescriptors.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 mb-2">
+                {companyDescriptors.map((d) => (
+                  <span key={d} className="inline-flex items-center gap-1 rounded-full bg-violet-100 dark:bg-violet-900/20 px-2 py-0.5 text-[10px] font-medium text-violet-700 dark:text-violet-300">
+                    {d}
+                    <button type="button" onClick={() => setCompanyDescriptors(prev => prev.filter(x => x !== d))}><X className="h-2.5 w-2.5" /></button>
+                  </span>
+                ))}
+              </div>
+            )}
+            <div className="flex gap-2">
+              <input type="text" value={descriptorInput} onChange={e => setDescriptorInput(e.target.value)}
+                onKeyDown={e => { if (e.key === "Enter" && descriptorInput.trim()) { e.preventDefault(); if (!companyDescriptors.includes(descriptorInput.trim())) setCompanyDescriptors(prev => [...prev, descriptorInput.trim()]); setDescriptorInput(""); }}}
+                placeholder="e.g. Full-service agency, Boutique consultancy, Enterprise SaaS..."
+                className="flex-1 rounded-md border border-border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary" />
+              <button type="button" onClick={() => { if (descriptorInput.trim() && !companyDescriptors.includes(descriptorInput.trim())) { setCompanyDescriptors(prev => [...prev, descriptorInput.trim()]); setDescriptorInput(""); }}}
+                className="rounded-md border border-border px-3 py-2 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-accent"><Plus className="h-3.5 w-3.5" /></button>
+            </div>
+          </div>
+          <div>
+            <label className="mb-1.5 block text-xs font-medium text-foreground">Industries with Case Studies / Past Work</label>
+            {caseStudyIndustries.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 mb-2">
+                {caseStudyIndustries.map((c) => (
+                  <span key={c} className="inline-flex items-center gap-1 rounded-full bg-emerald-100 dark:bg-emerald-900/20 px-2 py-0.5 text-[10px] font-medium text-emerald-700 dark:text-emerald-300">
+                    {c}
+                    <button type="button" onClick={() => setCaseStudyIndustries(prev => prev.filter(x => x !== c))}><X className="h-2.5 w-2.5" /></button>
+                  </span>
+                ))}
+              </div>
+            )}
+            <div className="flex gap-2">
+              <input type="text" value={caseStudyInput} onChange={e => setCaseStudyInput(e.target.value)}
+                onKeyDown={e => { if (e.key === "Enter" && caseStudyInput.trim()) { e.preventDefault(); if (!caseStudyIndustries.includes(caseStudyInput.trim())) setCaseStudyIndustries(prev => [...prev, caseStudyInput.trim()]); setCaseStudyInput(""); }}}
+                placeholder="e.g. Healthcare, QSR, Automotive..."
+                className="flex-1 rounded-md border border-border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary" />
+              <button type="button" onClick={() => { if (caseStudyInput.trim() && !caseStudyIndustries.includes(caseStudyInput.trim())) { setCaseStudyIndustries(prev => [...prev, caseStudyInput.trim()]); setCaseStudyInput(""); }}}
+                className="rounded-md border border-border px-3 py-2 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-accent"><Plus className="h-3.5 w-3.5" /></button>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Signal preferences */}
