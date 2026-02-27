@@ -38,6 +38,187 @@ export type Database = {
         }
         Relationships: []
       }
+      companies: {
+        Row: {
+          ai_readiness_score: number | null
+          annual_revenue_estimate: string | null
+          competitive_advantage: string | null
+          created_at: string | null
+          description: string | null
+          employee_count_estimate: number | null
+          headquarters_city: string | null
+          headquarters_country: string | null
+          headquarters_state: string | null
+          id: string
+          industry_name: string
+          industry_slug: string
+          is_active: boolean | null
+          market_position: string | null
+          metadata: Json | null
+          name: string
+          revenue_tier: string | null
+          scope: string | null
+          sector: string | null
+          slug: string
+          tags: string[] | null
+          updated_at: string | null
+          website_url: string | null
+        }
+        Insert: {
+          ai_readiness_score?: number | null
+          annual_revenue_estimate?: string | null
+          competitive_advantage?: string | null
+          created_at?: string | null
+          description?: string | null
+          employee_count_estimate?: number | null
+          headquarters_city?: string | null
+          headquarters_country?: string | null
+          headquarters_state?: string | null
+          id?: string
+          industry_name: string
+          industry_slug: string
+          is_active?: boolean | null
+          market_position?: string | null
+          metadata?: Json | null
+          name: string
+          revenue_tier?: string | null
+          scope?: string | null
+          sector?: string | null
+          slug: string
+          tags?: string[] | null
+          updated_at?: string | null
+          website_url?: string | null
+        }
+        Update: {
+          ai_readiness_score?: number | null
+          annual_revenue_estimate?: string | null
+          competitive_advantage?: string | null
+          created_at?: string | null
+          description?: string | null
+          employee_count_estimate?: number | null
+          headquarters_city?: string | null
+          headquarters_country?: string | null
+          headquarters_state?: string | null
+          id?: string
+          industry_name?: string
+          industry_slug?: string
+          is_active?: boolean | null
+          market_position?: string | null
+          metadata?: Json | null
+          name?: string
+          revenue_tier?: string | null
+          scope?: string | null
+          sector?: string | null
+          slug?: string
+          tags?: string[] | null
+          updated_at?: string | null
+          website_url?: string | null
+        }
+        Relationships: []
+      }
+      company_contacts: {
+        Row: {
+          company_id: string
+          created_at: string | null
+          department: string | null
+          email: string | null
+          id: string
+          linkedin_url: string | null
+          name: string
+          relevance: string | null
+          source: string | null
+          title: string | null
+          updated_at: string | null
+          verified: boolean | null
+        }
+        Insert: {
+          company_id: string
+          created_at?: string | null
+          department?: string | null
+          email?: string | null
+          id?: string
+          linkedin_url?: string | null
+          name: string
+          relevance?: string | null
+          source?: string | null
+          title?: string | null
+          updated_at?: string | null
+          verified?: boolean | null
+        }
+        Update: {
+          company_id?: string
+          created_at?: string | null
+          department?: string | null
+          email?: string | null
+          id?: string
+          linkedin_url?: string | null
+          name?: string
+          relevance?: string | null
+          source?: string | null
+          title?: string | null
+          updated_at?: string | null
+          verified?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_contacts_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      company_scores: {
+        Row: {
+          company_id: string
+          composite_score: number
+          geo_match_score: number | null
+          id: string
+          industry_match_score: number | null
+          matched_signal_ids: string[] | null
+          revenue_match_score: number | null
+          scored_at: string | null
+          services_match_score: number | null
+          signal_recency_score: number | null
+          user_id: string
+        }
+        Insert: {
+          company_id: string
+          composite_score?: number
+          geo_match_score?: number | null
+          id?: string
+          industry_match_score?: number | null
+          matched_signal_ids?: string[] | null
+          revenue_match_score?: number | null
+          scored_at?: string | null
+          services_match_score?: number | null
+          signal_recency_score?: number | null
+          user_id: string
+        }
+        Update: {
+          company_id?: string
+          composite_score?: number
+          geo_match_score?: number | null
+          id?: string
+          industry_match_score?: number | null
+          matched_signal_ids?: string[] | null
+          revenue_match_score?: number | null
+          scored_at?: string | null
+          services_match_score?: number | null
+          signal_recency_score?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_scores_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pipeline_items: {
         Row: {
           company_name: string
@@ -227,6 +408,63 @@ export type Database = {
         }
         Relationships: []
       }
+      real_signals: {
+        Row: {
+          ai_enriched: boolean | null
+          content_hash: string | null
+          id: string
+          ingested_at: string | null
+          metadata: Json | null
+          published_at: string | null
+          related_company_names: string[] | null
+          related_industries: string[] | null
+          sales_implication: string | null
+          sentiment: string | null
+          severity: number | null
+          signal_type: string | null
+          source_name: string | null
+          source_url: string
+          summary: string | null
+          title: string
+        }
+        Insert: {
+          ai_enriched?: boolean | null
+          content_hash?: string | null
+          id?: string
+          ingested_at?: string | null
+          metadata?: Json | null
+          published_at?: string | null
+          related_company_names?: string[] | null
+          related_industries?: string[] | null
+          sales_implication?: string | null
+          sentiment?: string | null
+          severity?: number | null
+          signal_type?: string | null
+          source_name?: string | null
+          source_url: string
+          summary?: string | null
+          title: string
+        }
+        Update: {
+          ai_enriched?: boolean | null
+          content_hash?: string | null
+          id?: string
+          ingested_at?: string | null
+          metadata?: Json | null
+          published_at?: string | null
+          related_company_names?: string[] | null
+          related_industries?: string[] | null
+          sales_implication?: string | null
+          sentiment?: string | null
+          severity?: number | null
+          signal_type?: string | null
+          source_name?: string | null
+          source_url?: string
+          summary?: string | null
+          title?: string
+        }
+        Relationships: []
+      }
       saved_signals: {
         Row: {
           created_at: string
@@ -254,6 +492,45 @@ export type Database = {
           prospect_id?: string | null
           signal_id?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      signal_ingestion_log: {
+        Row: {
+          completed_at: string | null
+          errors: string[] | null
+          id: string
+          metadata: Json | null
+          query_term: string | null
+          signals_enriched: number | null
+          signals_fetched: number | null
+          signals_new: number | null
+          source: string
+          started_at: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          errors?: string[] | null
+          id?: string
+          metadata?: Json | null
+          query_term?: string | null
+          signals_enriched?: number | null
+          signals_fetched?: number | null
+          signals_new?: number | null
+          source: string
+          started_at?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          errors?: string[] | null
+          id?: string
+          metadata?: Json | null
+          query_term?: string | null
+          signals_enriched?: number | null
+          signals_fetched?: number | null
+          signals_new?: number | null
+          source?: string
+          started_at?: string | null
         }
         Relationships: []
       }
