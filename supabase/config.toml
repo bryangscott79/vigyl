@@ -14,3 +14,6 @@ verify_jwt = false
 
 [functions.invite-team-member]
 verify_jwt = false
+
+[functions.ingest-signals]
+verify_jwt = false

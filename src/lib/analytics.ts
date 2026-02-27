@@ -139,4 +139,8 @@ export const EVENTS = {
   // Subscription
   UPGRADE_CLICKED: "upgrade_clicked",
   SUBSCRIPTION_STARTED: "subscription_started",
+
+  // Real Data Engine
+  REAL_DATA_ENGINE_USED: "real_data_engine_used",
+  REAL_DATA_ENGINE_FAILED: "real_data_engine_failed",
 } as const;

@@ -79,6 +79,8 @@ interface AiImpactGenState {
   error: string | null;
 }
 
+type DataSource = "real_data" | "ai_generated" | "seed" | null;
+
 interface IntelligenceContextType {
   data: IntelligenceData;
   loading: boolean;
@@ -90,6 +92,7 @@ interface IntelligenceContextType {
   effectiveUserId: string | null;
   isTeamMember: boolean;
   lastGeneratedAt: string | null;
+  dataSource: DataSource;
   // AI Impact generation (lives in context so it survives navigation)
   aiImpactGen: AiImpactGenState;
   generateAiImpact: (industriesToProcess?: { id: string; name: string }[]) => void;
@@ -114,6 +117,7 @@ const IntelligenceContext = createContext<IntelligenceContextType>({
   effectiveUserId: null,
   isTeamMember: false,
   lastGeneratedAt: null,
+  dataSource: null,
   aiImpactGen: { generating: false, progress: { current: 0, total: 0, industryName: "" }, error: null },
   generateAiImpact: () => {},
 });
@@ -127,6 +131,7 @@ export function IntelligenceProvider({ children }: { children: ReactNode }) {
   const [isBackgroundRefreshing, setIsBackgroundRefreshing] = useState(false);
   const [isUsingSeedData, setIsUsingSeedData] = useState(false);
   const [lastGeneratedAt, setLastGeneratedAt] = useState<string | null>(null);
+  const [dataSource, setDataSource] = useState<DataSource>(null);
 
   // Team owner resolution: if user is a team member, use the owner's data
   const [effectiveUserId, setEffectiveUserId] = useState<string | null>(null);
@@ -213,7 +218,43 @@ export function IntelligenceProvider({ children }: { children: ReactNode }) {
     }
   }, [effectiveUserId]);
 
-  // Generate fresh intelligence from AI
+  // Try the Real Data Engine first (score-real-companies)
+  const tryRealDataEngine = useCallback(async (): Promise<boolean> => {
+    if (!profile || !session) return false;
+    try {
+      console.log("[Intelligence] Attempting Real Data Engine...");
+      const { data: result, error: fnError } = await supabase.functions.invoke("score-real-companies", {
+        body: { profile },
+      });
+
+      if (fnError) throw new Error(fnError.message);
+      if (!result?.success) throw new Error(result?.error || "Real data engine returned no data");
+      if (!result.data?.prospects?.length) throw new Error("No real data prospects returned");
+
+      setData({
+        industries: mergeIndustriesWithSeed(result.data.industries || []),
+        signals: mergeSignalsWithSeed(result.data.signals || []),
+        prospects: result.data.prospects,
+        aiImpact: mergeAiImpactWithSeed(result.data.aiImpact || []),
+      });
+      setDataSource("real_data");
+      setIsUsingSeedData(false);
+      setLastGeneratedAt(new Date().toISOString());
+      track(EVENTS.REAL_DATA_ENGINE_USED, {
+        industries: result.data.industries?.length,
+        prospects: result.data.prospects?.length,
+        signals: result.data.signals?.length,
+      });
+      console.log(`[Intelligence] Real Data Engine succeeded: ${result.data.prospects.length} prospects from real companies`);
+      return true;
+    } catch (err: any) {
+      console.warn("[Intelligence] Real Data Engine unavailable or returned no data, falling back to legacy:", err.message);
+      track(EVENTS.REAL_DATA_ENGINE_FAILED, { error: err.message });
+      return false;
+    }
+  }, [profile, session]);
+
+  // Generate fresh intelligence — tries Real Data Engine first, falls back to legacy AI
   const generateFresh = useCallback(async (isBackground: boolean) => {
     if (!profile || !session) return;
     if (!profile.target_industries?.length && !profile.business_summary && !profile.ai_summary) return;
@@ -226,6 +267,12 @@ export function IntelligenceProvider({ children }: { children: ReactNode }) {
     setError(null);
 
     try {
+      // Step 1: Try Real Data Engine first
+      const realDataSucceeded = await tryRealDataEngine();
+      if (realDataSucceeded) return;
+
+      // Step 2: Fall back to legacy AI generation
+      console.log("[Intelligence] Falling back to generate-intelligence (legacy AI)...");
       const { data: result, error: fnError } = await supabase.functions.invoke("generate-intelligence", {
         body: { profile },
       });
@@ -239,9 +286,11 @@ export function IntelligenceProvider({ children }: { children: ReactNode }) {
         signals: mergeSignalsWithSeed(result.data.signals || []),
         aiImpact: mergeAiImpactWithSeed(result.data.aiImpact || []),
       });
+      setDataSource("ai_generated");
       setIsUsingSeedData(false);
       setLastGeneratedAt(new Date().toISOString());
       track(isBackground ? EVENTS.INTELLIGENCE_REFRESHED : EVENTS.INTELLIGENCE_GENERATED, {
+        source: "ai_generated",
         industries: result.data.industries?.length,
         prospects: result.data.prospects?.length,
         signals: result.data.signals?.length,
@@ -251,6 +300,7 @@ export function IntelligenceProvider({ children }: { children: ReactNode }) {
       if (!isBackground) {
         setError(err.message || "Failed to generate intelligence");
         activateSeedFallback();
+        setDataSource("seed");
       }
     } finally {
       if (isBackground) {
@@ -259,7 +309,7 @@ export function IntelligenceProvider({ children }: { children: ReactNode }) {
         setLoading(false);
       }
     }
-  }, [profile, session, activateSeedFallback]);
+  }, [profile, session, activateSeedFallback, tryRealDataEngine]);
 
   // AI Impact generation — runs in context, survives page navigation
   const generateAiImpact = useCallback((industriesToProcess?: { id: string; name: string }[]) => {
@@ -364,6 +414,7 @@ export function IntelligenceProvider({ children }: { children: ReactNode }) {
         effectiveUserId,
         isTeamMember,
         lastGeneratedAt,
+        dataSource,
         aiImpactGen,
         generateAiImpact,
       }}
