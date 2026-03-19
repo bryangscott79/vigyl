@@ -4,6 +4,7 @@ import { useState } from "react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import AIToolReleaseTimeline from "@/components/ai-tools/AIToolReleaseTimeline";
 import AIToolCompetitors from "@/components/ai-tools/AIToolCompetitors";
+import AIToolBusinessImpact from "@/components/ai-tools/AIToolBusinessImpact";
 import { CATEGORIES } from "@/components/ai-tools/AIToolCategoryTabs";
 import { useAITool, useAITools } from "@/hooks/useAITools";
 import { useAuth } from "@/contexts/AuthContext";
@@ -203,29 +204,9 @@ function AIToolDetailContent() {
             </CollapsibleSection>
           )}
 
-          {/* Business Impact (gated) */}
-          <CollapsibleSection title="Business Impact Analysis" icon={Sparkles} defaultOpen={false}>
-            {session?.user ? (
-              <div className="text-center py-4">
-                <Lock className="mx-auto h-6 w-6 text-muted-foreground/30" />
-                <p className="mt-2 text-sm text-muted-foreground">
-                  Personalized business impact analysis coming soon.
-                </p>
-                <p className="mt-1 text-xs text-muted-foreground/60">
-                  Upgrade to Growth to see how {tool.name} can transform your specific business.
-                </p>
-              </div>
-            ) : (
-              <div className="text-center py-4">
-                <Sparkles className="mx-auto h-6 w-6 text-primary/40" />
-                <p className="mt-2 text-sm text-muted-foreground">
-                  Sign up to see how {tool.name} can impact your business.
-                </p>
-                <Link to="/auth" className="mt-3 inline-flex items-center gap-1 text-sm text-primary hover:underline">
-                  Create Free Account
-                </Link>
-              </div>
-            )}
+          {/* Business Impact Analysis */}
+          <CollapsibleSection title="Business Impact Analysis" icon={Sparkles} defaultOpen={true}>
+            <AIToolBusinessImpact tool={tool} />
           </CollapsibleSection>
         </div>
 

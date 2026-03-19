@@ -1,15 +1,17 @@
 import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { Search, Sparkles, LayoutGrid, Clock, ArrowRight } from "lucide-react";
+import { Search, Sparkles, LayoutGrid, Clock, ArrowRight, GitCompare } from "lucide-react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import AIToolCard from "@/components/ai-tools/AIToolCard";
 import AIToolCategoryTabs from "@/components/ai-tools/AIToolCategoryTabs";
 import AIToolReleaseTimeline from "@/components/ai-tools/AIToolReleaseTimeline";
+import AIToolWeeklyPulse from "@/components/ai-tools/AIToolWeeklyPulse";
+import AIToolCompare from "@/components/ai-tools/AIToolCompare";
 import { useAITools } from "@/hooks/useAITools";
 import { useAuth } from "@/contexts/AuthContext";
 import vigylLogo from "@/assets/vigyl-logo.png";
 
-type ViewMode = "catalog" | "releases";
+type ViewMode = "catalog" | "releases" | "compare";
 
 function AIToolsCatalogContent() {
   const [category, setCategory] = useState("all");
@@ -83,6 +85,15 @@ function AIToolsCatalogContent() {
             <Clock className="h-3.5 w-3.5" />
             Releases
           </button>
+          <button
+            onClick={() => setViewMode("compare")}
+            className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+              viewMode === "compare" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <GitCompare className="h-3.5 w-3.5" />
+            Compare
+          </button>
         </div>
       </div>
 
@@ -139,6 +150,13 @@ function AIToolsCatalogContent() {
         </div>
       )}
 
+      {/* Weekly Pulse (shown above catalog) */}
+      {!isLoading && viewMode === "catalog" && tools.length > 0 && !search && category === "all" && maturityFilter === "all" && pricingFilter === "all" && (
+        <div className="mt-4">
+          <AIToolWeeklyPulse tools={tools} />
+        </div>
+      )}
+
       {/* Catalog View */}
       {!isLoading && viewMode === "catalog" && (
         <>
@@ -155,6 +173,13 @@ function AIToolsCatalogContent() {
             </div>
           )}
         </>
+      )}
+
+      {/* Compare View */}
+      {!isLoading && viewMode === "compare" && (
+        <div className="mt-6">
+          <AIToolCompare tools={tools} />
+        </div>
       )}
 
       {/* Releases View */}
